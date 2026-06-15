@@ -11,12 +11,19 @@ def fetch_news(topic):
     response = requests.get(url)
     articles = response.json().get("articles", [])
     
-    for article in articles:
-        print("Title:", article["title"])
-        print("Source:", article["source"]["name"])
-        print("URL:", article["url"])
-        print("---")
-
-if __name__ == "__main__":
-    fetch_news("Artificial Intelligence")
+    # Create an empty list to collect our formatted text blocks
+    collected_results = []
     
+    for article in articles:
+        # Build a neat string for each article
+        article_summary = (
+            f"Title: {article['title']}\n"
+            f"Source: {article['source']['name']}\n"
+            f"URL: {article['url']}\n"
+            f"---"
+        )
+        # Add it to our pile
+        collected_results.append(article_summary)
+        
+    # Join all the summaries together with newlines and return them to the AI
+    return "\n".join(collected_results)
