@@ -19,4 +19,3 @@ def fetch_news(topic):
 
 if __name__ == "__main__":
     fetch_news("Artificial Intelligence")
-    
