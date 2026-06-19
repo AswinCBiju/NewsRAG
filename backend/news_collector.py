@@ -1,6 +1,7 @@
 import requests
 import os
 from dotenv import load_dotenv
+from database import save_article
 
 load_dotenv()
 
@@ -12,10 +13,21 @@ def fetch_news(topic):
     articles = response.json().get("articles", [])
     
     for article in articles:
-        print("Title:", article["title"])
-        print("Source:", article["source"]["name"])
-        print("URL:", article["url"])
+        title = article["title"]
+        source = article["source"]["name"]
+        link = article["url"]
+        published_at = article["publishedAt"]
+        content = article.get("content", "")
+
+        print("Title:", title)
+        print("Source:", source)
+        print("URL:", link)
         print("---")
+
+        save_article(title, source, link, published_at, content)
+
+    print(f"Saved {len(articles)} articles to the database!")
 
 if __name__ == "__main__":
     fetch_news("Artificial Intelligence")
+    
