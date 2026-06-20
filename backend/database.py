@@ -24,3 +24,24 @@ def save_article(title, source, url, published_at, content):
     cur.close()
     conn.close()
     
+def get_cached_articles(topic, hours_limit=24):
+    """Checks the database for recent articles matching the topic."""
+    conn = get_connection()
+    cur = conn.cursor()
+    
+    # We use ILIKE for case-insensitive matching (e.g., matches "GTA 6" or "gta 6")
+    # We also check that the article was saved within the last X hours
+    cur.execute("""
+        SELECT title, source, url, published_at, content 
+        FROM articles 
+        WHERE (title ILIKE %s OR content ILIKE %s)
+        AND saved_at >= NOW() - INTERVAL '%s hours'
+        ORDER BY published_at DESC
+        LIMIT 5;
+    """, (f"%{topic}%", f"%{topic}%", hours_limit))
+    
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    
+    return rows

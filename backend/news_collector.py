@@ -1,13 +1,33 @@
 import requests
 import os
 from dotenv import load_dotenv
-from database import save_article
+from database import save_article,get_cached_articles
 
 load_dotenv()
 
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
 def fetch_news(topic):
+    # Checking the database before making the API call
+    cached_data = get_cached_articles(topic, hours_limit=24)
+
+    if cached_data and len(cached_data) > 0:
+        print(f"✅ Found {len(cached_data)} recent articles in the local database! Skipping API call.")
+        
+        collected_results = []
+        # cached_data is a list of tuples: (title, source, url, published_at, content)
+        for row in cached_data:
+            title, source, url, published_at, content = row
+            article_summary = (
+                f"Title: {title}\n"
+                f"Source: {source}\n"
+                f"URL: {url}\n"
+                f"---"
+            )
+            collected_results.append(article_summary)
+            
+        return "\n".join(collected_results)
+
     url = f"https://newsapi.org/v2/everything?q={topic}&apiKey={NEWS_API_KEY}&pageSize=5"
     response = requests.get(url)
     articles = response.json().get("articles", [])
@@ -43,6 +63,3 @@ def fetch_news(topic):
 
     # Join all the summaries together with newlines and return them to the AI
     return "\n".join(collected_results)
-
-if __name__ == "__main__":
-    fetch_news("Artificial Intelligence")
