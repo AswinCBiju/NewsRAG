@@ -1,11 +1,9 @@
-from database import save_article
+from retrieval import retrieve_relevant_articles, context_builder
+from news_collector import fetch_news
 
-article_id = save_article(
-    "Test",
-    "Me",
-    "http://test.com",
-    "2026-06-23",
-    "Hello world"
-)
+fetch_news("gta 6")
+articles = retrieve_relevant_articles("whats hot on gta 6")
+context = context_builder(articles)
 
-print(article_id)
+
+print(context)

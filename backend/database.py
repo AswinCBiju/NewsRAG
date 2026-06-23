@@ -38,7 +38,7 @@ def get_cached_articles(topic, hours_limit=24):
     # We use ILIKE for case-insensitive matching (e.g., matches "GTA 6" or "gta 6")
     # We also check that the article was saved within the last X hours
     cur.execute("""
-        SELECT title, source, url, published_at, content 
+        SELECT id,title, source, url, published_at, content 
         FROM articles 
         WHERE (title ILIKE %s OR content ILIKE %s)
         AND saved_at >= NOW() - INTERVAL '%s hours'

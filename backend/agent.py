@@ -3,6 +3,9 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain.agents import create_agent
+from embeddings import get_embedding
+from retrieval import retrieve_relevant_articles, context_builder
+
 from news_collector import fetch_news
 
 load_dotenv()
@@ -16,8 +19,23 @@ def fetch_news_gemini(topic: str) -> str:
     """Use this tool to fetch live news articles, publisher sources, and links about a specific topic."""
     return fetch_news(topic)
 
+@tool
+def retrieve_news_context(query: str) -> str:
+    """
+    Use this tool to retrieve relevant context to the query
+    """
+
+    articles = retrieve_relevant_articles(query)
+    context = context_builder(articles)
+
+    return context
+
+
 # Build the tool list
-tools = [fetch_news_gemini]
+tools = [
+    fetch_news_gemini,
+    retrieve_news_context
+]
 
 # In the new version, you pass the prompt and tools directly into create_agent.
 # No need to manually build an AgentExecutor!
@@ -25,10 +43,11 @@ agent = create_agent(
     model=llm,
     tools=tools,
     system_prompt=
-        "You are a professional, real-time news analyst. "
-        "CRITICAL INSTRUCTION: You must base your answers STRICTLY on the information returned by your search tool and chat history. "
-        "Treat the retrieved news data as absolute, up-to-date truth. If a retrieved article states a specific date, announcement, or fact, you must report it as factual and current. "
-        "DO NOT contradict the retrieved articles or claim they are outdated based on your internal training data."
+        "You are a professional real-time news analyst."
+        "Use the available tools whenever you need information."
+        "For recent or breaking news, prefer the live news tool."
+        "For questions that can be answered from the local news database, use the local retrieval tool."
+        "Base your answers only on information returned by tools and the conversation history."
 )
 
 print("🤖 Agent is active and standing by!")
@@ -63,7 +82,7 @@ def run_news_agent(user_question, chat_history=None):
             clean_text = first_block["text"]
             
     else:
-        clean_text - str(content)
+        clean_text = str(content)
 
     chat_history.append(AIMessage(content=clean_text))
 
