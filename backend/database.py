@@ -19,10 +19,16 @@ def save_article(title, source, url, published_at, content):
     cur.execute("""
         INSERT INTO articles (title, source, url, published_at, content)
         VALUES (%s, %s, %s, %s, %s)
+        RETURNING id
     """, (title, source, url, published_at, content))
+
+    article_id = cur.fetchone()[0]
+
     conn.commit()
     cur.close()
     conn.close()
+
+    return article_id
     
 def get_cached_articles(topic, hours_limit=24):
     """Checks the database for recent articles matching the topic."""
@@ -44,4 +50,21 @@ def get_cached_articles(topic, hours_limit=24):
     cur.close()
     conn.close()
     
+    return rows
+
+def get_articles_by_ids(ids):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id, title, source, url, content
+        FROM articles
+        WHERE id = ANY(%s)
+    """, (ids,))
+
+    rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
     return rows

@@ -1,6 +1,8 @@
 import requests
 import os
 from dotenv import load_dotenv
+from vector_store import add_article
+from embeddings import get_embedding
 from database import save_article,get_cached_articles
 
 load_dotenv()
@@ -47,8 +49,14 @@ def fetch_news(topic):
         print("URL:", link)
         print("---")
 
-        # Save this article permanently to the PostgreSQL database
-        save_article(title, source, link, published_at, content)
+        # Save this article permanently to the PostgreSQL database while also converting them into embeddings so FAISS can store them as vector embeddings
+        article_id = save_article(title, source, link, published_at, content)
+
+        text = f"{title}\n{content or ""}"
+
+        embedding = get_embedding(text)
+
+        add_article(article_id,embedding)
 
         # Build a neat string for each article (for Gemini to read)
         article_summary = (
