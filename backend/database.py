@@ -41,7 +41,7 @@ def get_cached_articles(topic, hours_limit=24):
         SELECT id,title, source, url, published_at, content 
         FROM articles 
         WHERE (title ILIKE %s OR content ILIKE %s)
-        AND saved_at >= NOW() - INTERVAL '%s hours'
+        AND saved_at >= NOW() - (%s * INTERVAL '1 hour')
         ORDER BY published_at DESC
         LIMIT 5;
     """, (f"%{topic}%", f"%{topic}%", hours_limit))
@@ -55,6 +55,10 @@ def get_cached_articles(topic, hours_limit=24):
 def get_articles_by_ids(ids):
     conn = get_connection()
     cur = conn.cursor()
+
+    if isinstance(ids, int):
+        ids = [ids]
+    
 
     cur.execute("""
         SELECT id, title, source, url, content

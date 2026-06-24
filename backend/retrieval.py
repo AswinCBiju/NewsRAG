@@ -4,11 +4,8 @@ from database import get_articles_by_ids
 
 def retrieve_relevant_articles(query):
     query_embedding =  get_embedding(query)
-
     ids = search_articles(query_embedding)
-
     articles = get_articles_by_ids(ids)
-
     return articles
 
 def context_builder(articles):

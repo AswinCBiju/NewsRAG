@@ -4,9 +4,11 @@ from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain.agents import create_agent
 from embeddings import get_embedding
+from vector_store import initialize_index
 from retrieval import retrieve_relevant_articles, context_builder
-
 from news_collector import fetch_news
+
+initialize_index()
 
 load_dotenv()
 
@@ -43,11 +45,15 @@ agent = create_agent(
     model=llm,
     tools=tools,
     system_prompt=
-        "You are a professional real-time news analyst."
-        "Use the available tools whenever you need information."
-        "For recent or breaking news, prefer the live news tool."
-        "For questions that can be answered from the local news database, use the local retrieval tool."
-        "Base your answers only on information returned by tools and the conversation history."
+    """
+    You are a strict news QA system.
+
+    RULES:
+    1. You MUST always use tools to answer questions about news, prices, release dates, or events.
+    2. Never answer from memory.
+    3. If no tool result is available, say "I don't have enough verified data."
+    4. Only use information from retrieved articles.
+    """
 )
 
 print("🤖 Agent is active and standing by!")
