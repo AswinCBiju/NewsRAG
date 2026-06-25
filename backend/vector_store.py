@@ -12,7 +12,7 @@ def save_embedding(article_id, embedding):
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
-        "UPDATE articles SET embedding = %s WHERE id = %s",
+        "UPDATE articles SET embeddings = %s WHERE id = %s",
         (embedding.tolist(), article_id)
     )
     conn.commit()
