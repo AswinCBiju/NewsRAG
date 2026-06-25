@@ -19,13 +19,19 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
 # Adding the news_collector function into the tools list using the tool decorator
 @tool
 def fetch_news_gemini(topic: str) -> str:
-    """Use this tool to fetch live news articles, publisher sources, and links about a specific topic."""
+    """
+    Use this tool to fetch and index fresh news articles about a topic.
+    Only call this if retrieve_news_context returned no useful results.
+    After calling this, always follow up with retrieve_news_context.
+    """
     return fetch_news(topic)
 
 @tool
 def retrieve_news_context(query: str) -> str:
     """
-    Use this tool to retrieve relevant context to the query
+    Use this tool FIRST for every question.
+    Searches the local knowledge base for relevant articles.
+    Returns article content to answer the user's question.
     """
 
     articles = retrieve_relevant_articles(query)
@@ -47,13 +53,15 @@ agent = create_agent(
     tools=tools,
     system_prompt=
     """
-    You are a strict news QA system.
+    You are a strict news QA system with a two-step process.
 
-    RULES:
-    1. You MUST always use tools to answer questions about news, prices, release dates, or events.
-    2. Never answer from memory.
-    3. If no tool result is available, say "I don't have enough verified data."
-    4. Only use information from retrieved articles.
+    ALWAYS follow this exact order:
+    1. ALWAYS call retrieve_news_context first for every question.
+    2. If the context contains a relevant answer, respond using only that information.
+    3. If retrieve_news_context returns empty or irrelevant results, THEN call fetch_news_gemini to fetch fresh articles.
+    4. After fetch_news_gemini, ALWAYS call retrieve_news_context again to get the actual content.
+    5. Never answer from memory or training data.
+    6. If no tool result is useful, say "I don't have enough verified data."
     """
 )
 
