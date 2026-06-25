@@ -8,9 +8,10 @@ from vector_store import initialize_index
 from retrieval import retrieve_relevant_articles, context_builder
 from news_collector import fetch_news
 
-initialize_index()
 
 load_dotenv()
+
+initialize_index()
 
 print("⚙️ Assembling the Gemini News Agent architecture...")
 # Gemini automatically looks into the system memory for "GOOGLE_API_KEY"
@@ -99,12 +100,12 @@ if __name__ == "__main__":
     print("\n🖥️ Local CLI Testing Mode Active (Type 'exit' to quit)")
     print("=" * 50)
 
+    session_history = []
     while True:
         user_prompt = input("Ask the agent a question: ")
         if user_prompt.lower() == "exit":
             print("Goodbye !!\n")
             break
-        session_history = []
         print("\nSearching and analyzing...")
         try:
             result,session_history = run_news_agent(user_prompt,session_history)

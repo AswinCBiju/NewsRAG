@@ -6,24 +6,41 @@ import numpy as np
 DIMENSION = 384
 
 index = faiss.IndexFlatL2(DIMENSION)
-
 article_ids = []
+
+def save_embedding(article_id, embedding):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "UPDATE articles SET embedding = %s WHERE id = %s",
+        (embedding.tolist(), article_id)
+    )
+    conn.commit()
+
 
 def initialize_index():
     """On startup, re-embed all articles from DB into FAISS."""
-    print("🔄 Re-indexing articles from database into FAISS...")
+    print("🔄 Re-indexing articles from database into FAISS... If needed")
+
+
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, title, content FROM articles ORDER BY saved_at DESC LIMIT 100")
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
 
-    for article_id, title, content in rows:
+     # load articles that already have embeddings — no re-embedding needed
+    cur.execute("SELECT id, title, content FROM articles WHERE embeddings IS NOT NULL ORDER BY saved_at DESC LIMIT 100")
+    for article_id, embedding in cur.fetchall():
+        add_article(article_id, np.array(embedding, dtype="float32"))
+
+    # embed only articles that don't have embeddings yet
+    cur.execute("SELECT id, title, content FROM articles WHERE embeddings IS NULL ORDER BY saved_at DESC")
+    for article_id, title, content in cur.fetchall():
         text = f"{title}\n{content or ''}"
         embedding = get_embedding(text)
+        save_embedding(article_id, embedding)
         add_article(article_id, embedding)
 
+    cur.close()
+    conn.close()
     print(f"✅ FAISS re-indexed with {len(article_ids)} articles.")
 
 def add_article(article_id, embedding):
