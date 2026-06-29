@@ -16,6 +16,8 @@ def save_embedding(article_id, embedding):
         (embedding.tolist(), article_id)
     )
     conn.commit()
+    cur.close()
+    conn.close()
 
 
 def initialize_index():
@@ -27,7 +29,7 @@ def initialize_index():
     cur = conn.cursor()
 
      # load articles that already have embeddings — no re-embedding needed
-    cur.execute("SELECT id, title, content FROM articles WHERE embeddings IS NOT NULL ORDER BY saved_at DESC LIMIT 100")
+    cur.execute("SELECT id, embeddings FROM articles WHERE embeddings IS NOT NULL ORDER BY saved_at DESC LIMIT 100")
     for article_id, embedding in cur.fetchall():
         add_article(article_id, np.array(embedding, dtype="float32"))
 
@@ -59,6 +61,5 @@ def search_articles(query_embedding, k=5):
     return [
         article_ids[i]
         for i in indices[0]
-        if i != -1 and
-        i < len(article_ids)
+        if i != -1 and i < len(article_ids)
     ]

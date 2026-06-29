@@ -41,7 +41,7 @@ def get_cached_articles(topic, hours_limit=24):
         SELECT id,title, source, url, published_at, content 
         FROM articles 
         WHERE (title ILIKE %s OR content ILIKE %s)
-        AND saved_at >= NOW() - (%s * INTERVAL '1 hour')
+        AND saved_at >= NOW() - INTERVAL '1 hour' * %s
         ORDER BY published_at DESC
         LIMIT 5;
     """, (f"%{topic}%", f"%{topic}%", hours_limit))
