@@ -18,7 +18,7 @@ export default function App() {
 
     try {
 
-      const res = await api.post("/ask-ai", {
+      const res = await api.post("/ask", {
         question
       });
 
